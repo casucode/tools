@@ -1,6 +1,6 @@
 import logging
 import logging.handlers
-def log_gen(level='DEBUG',logfile=None,threads=False,log_only=False,email_level=None,email_data={}):
+def log_gen(level='DEBUG',logfile=None,threads=False,log_only=False,email_level=None,email_data={},format=None):
     """
  *+
  *  Name:
@@ -59,13 +59,14 @@ def log_gen(level='DEBUG',logfile=None,threads=False,log_only=False,email_level=
     import sys
     a = 1
     import logging
-    from tools import ColourFormatter
+    from logger import ColourFormatter
 
     if level not in ['DEBUG','INFO','WARNING','ERROR','CRITICAL']:
-            print "defined level '%s' not recognised. Setting to DEBUG" %(level)
-            level = 'DEBUG'
+        #print "defined level '%s' not recognised. Setting to DEBUG" %(level)
+        level = 'DEBUG'
 
     log = logging.getLogger()
+    custom_format = 'auto'
 
     if not len(log.handlers):
             log.setLevel(level)
@@ -74,8 +75,12 @@ def log_gen(level='DEBUG',logfile=None,threads=False,log_only=False,email_level=
             else:
                     formatter = logging.Formatter('%(asctime)s @%(module)s.%(funcName)s() [%(levelname)s] : %(message)s',datefmt="%a %d %b %H:%M:%S %Y")
 
+            if format:
+                formatter = logging.Formatter(format)
+                custom_format = format
+                
             if email_level != None:
-                from tools import SMTPBufferHandler
+                from logger import SMTPBufferHandler
                 MAILHOST = 'smtp.ast.cam.ac.uk'
                 try:
                     FROM = email_data['FROM']
@@ -105,7 +110,7 @@ def log_gen(level='DEBUG',logfile=None,threads=False,log_only=False,email_level=
                     ch.setLevel(level)
                     ch.setFormatter(formatter)
 
-                    ch.setFormatter(ColourFormatter(threads=threads))
+                    ch.setFormatter(ColourFormatter(threads=threads,format=custom_format))
                     ch.set_name('stdout')
                     log.addHandler(ch)
                     
@@ -156,16 +161,21 @@ class ColourFormatter(logging.Formatter):
     'ERROR': BOLD
   }
 
-  def __init__(self, use_colour=True,threads=False):
-    if threads == True:
-      self.FORMAT = '%(asctime)s @%(module)s.%(funcName)s() [%(levelname)s] [%(threadName)s] : %(message)s'
+  def __init__(self, use_colour=True,threads=False,format='auto'):
+    if format == 'auto':
+        if threads == True:
+          self.FORMAT = '%(asctime)s @%(module)s.%(funcName)s() [%(levelname)s] [%(threadName)s] : %(message)s'
+        else:
+          self.FORMAT = '%(asctime)s @%(module)s.%(funcName)s() [%(levelname)s] : %(message)s'
+        msg = self.formatter_msg(self.FORMAT, use_colour)
+        logging.Formatter.__init__(self, msg,datefmt="%a %d %b %H:%M:%S %Y")
+        
+
     else:
-      self.FORMAT = '%(asctime)s @%(module)s.%(funcName)s() [%(levelname)s] : %(message)s'
-
-    msg = self.formatter_msg(self.FORMAT, use_colour)
-    logging.Formatter.__init__(self, msg,datefmt="%a %d %b %H:%M:%S %Y")
+        self.FORMAT = format
+        msg = self.formatter_msg(self.FORMAT, use_colour)
+        logging.Formatter.__init__(self, msg)
     self.use_colour = use_colour
-
 
   def formatter_msg(self, msg, use_colour = True):
     if use_colour:
