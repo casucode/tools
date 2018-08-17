@@ -57,6 +57,7 @@ def log_gen(level='DEBUG',logfile=None,threads=False,log_only=False,email_level=
 +*  
     """
     import sys
+    a = 1
     import logging
     from tools import ColourFormatter
 
