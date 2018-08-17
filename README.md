@@ -14,7 +14,7 @@ nthreads = 1
 
 email_data = {}
 
-email_data['FROM'] = 'David Murphy <dmurphy@ast.cam.ac.uk>'
+email_data['FROM'] = 'David Murphy \<dmurphy@ast.cam.ac.uk\>'
 
 email_data['TO'] = ['a@b.com','c@d.com']
 
